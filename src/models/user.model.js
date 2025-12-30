@@ -45,18 +45,24 @@ User.getAll = () => {
 User.findByPhoneOrEmail = (identifier) => {
   return new Promise((resolve, reject) => {
     const sql = `
-      SELECT * 
-      FROM users 
+      SELECT *
+      FROM users
       WHERE phone = ? OR email = ?
       LIMIT 1
     `;
 
     db.query(sql, [identifier, identifier], (err, results) => {
-      if (err) return reject(err);
-      resolve(results[0]);
+      if (err) {
+        console.error("DB ERROR:", err);
+        return reject(err);
+      }
+
+      resolve(results.length ? results[0] : null);
     });
   });
 };
+
+
 
 
 export default User;

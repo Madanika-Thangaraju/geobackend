@@ -50,33 +50,36 @@ export async function getusers(req, res) {
 /* LOGIN */
 export async function loginUser(req, res) {
   try {
+    const { identifier, password } = req.body;
 
-     const { identifier, password } = req.body;
+    console.log('response' , req.body);
 
-
-    if (!phone || !password) {
-      return res.status(400).json({ message: "Phone and password required" });
+    if (!identifier || !password) {
+      return res.status(400).json({
+        message: "Email/Phone and password are required",
+      });
     }
 
-    const user = await User.findByPhoneOrEmail(identifier);
+    const cleanIdentifier = identifier.trim().toLowerCase();
+    console.log('cleanIdentifier' , cleanIdentifier)
+    const user = await User.findByPhoneOrEmail(cleanIdentifier);
 
     if (!user) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
-
     if (!isMatch) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
     const token = jwt.sign(
-      { id: user.id, phone: user.phone },
+      { id: user.id },
       JWT_SECRET,
       { expiresIn: JWT_EXPIRES_IN }
     );
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       token,
       user: {
@@ -87,7 +90,8 @@ export async function loginUser(req, res) {
       },
     });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error("LOGIN ERROR:", err);
+    return res.status(500).json({ message: "Server error" });
   }
 }
 
