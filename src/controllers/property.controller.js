@@ -1,38 +1,59 @@
 import Property from "../models/property.model.js";
 
 export const addProperty = async (req, res) => {
-   
+  console.log('executed');
   try {
-    const { title, listingTypes, propertyTypes, address, images } = req.body;
-    const userId = req.user.id;
-
-     console.log("full request" , req.body , userId);
-
-     return ;
-
-    if (!title || !listingTypes || !propertyTypes || !address) {
-      return res.status(400).json({
-        message: "Missing required fields",
-      });
-    }
-
-    const property = await Property.create({
-      userId,
+    const {
       title,
       listingTypes,
       propertyTypes,
       address,
-      images: images || [],
+      location,
+      bhk,
+      bedrooms,
+      bathrooms,
+      sqft,
+      rentPrice,
+      deposit,
+      furnishing,
+      price,
+      images
+    } = req.body;
+
+    const owner_id = req.user.id;
+
+    if (!title || !listingTypes?.length || !propertyTypes?.length || !address) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    const propertyId = await Property.createProperty({
+      owner_id,
+      title,
+      listing_type: listingTypes[0],
+      property_type: propertyTypes[0],
+      address,
+      location,
+      bhk,
+      bedrooms,
+      bathrooms,
+      sqft,
+      furnishing,
+      price,
+      rent_price: rentPrice,
+      deposit
     });
+
+    if (images && images.length > 0) {
+      await Property.addImages(propertyId, images);
+    }
 
     return res.status(201).json({
       success: true,
-      propertyId: property.id,
+      propertyId
     });
+
   } catch (err) {
     console.error("ADD PROPERTY ERROR:", err);
-    return res.status(500).json({
-      message: "Server error",
-    });
+    res.status(500).json({ message: "Server error" });
   }
 };

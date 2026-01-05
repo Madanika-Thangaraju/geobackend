@@ -4,9 +4,10 @@ import userRoutes from "./routes/user.route.js";
 
 import propertyRoutes from "./routes/property.routes.js";
 
+import tenantProperties from "./routes/tenant.routes.js";
+
 const app = express();
 
-// ✅ CORS (handles preflight automatically)
 app.use(cors({
   origin: "*", // dev only
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
@@ -18,6 +19,8 @@ app.use(express.json());
 app.use("/users", userRoutes);
 
 app.use("/properties" , propertyRoutes);
+
+app.use("/tenants" , tenantProperties);
 
 app.get("/", (req, res) => {
   res.send("API is running");

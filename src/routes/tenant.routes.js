@@ -1,15 +1,9 @@
-// import { Router } from "express";
-// import { registerTenant , gettenants } from "../controllers/tenant.controller.js";
+import { Router } from "express";
+import { getproperties } from "../controllers/tenant.controller.js";
+import { authMiddleware } from "../middlewares/auth.middleware.js";
 
+const router = Router();
 
-// const router = Router();
+router.get("/all/properties", getproperties);
 
-// router.get("/ping", (req, res) => {
-//   res.send("tenants route working");
-// });
-
-// router.post("/register", registerTenant);
-
-// router.get("/tenants", gettenants);
-
-// export default router;
+export default router;
