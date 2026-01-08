@@ -6,6 +6,8 @@ import propertyRoutes from "./routes/property.routes.js";
 
 import tenantProperties from "./routes/tenant.routes.js";
 
+import ownerRoutes from "./routes/owner.routes.js"
+
 const app = express();
 
 app.use(cors({
@@ -29,5 +31,7 @@ app.get("/", (req, res) => {
 app.get("/testing", (req, res) => {
   res.send("hello");
 });
+
+app.use("/owners", ownerRoutes);
 
 export default app;

@@ -49,6 +49,7 @@ export async function getusers(req, res) {
 
 /* LOGIN */
 export async function loginUser(req, res) {
+  console.log('hello');
   try {
     const { identifier, password } = req.body;
 
