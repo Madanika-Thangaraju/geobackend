@@ -4,7 +4,7 @@ import dbdata from "./env.js";
 const db = mysql.createPool({
   host: dbdata.host,
   user: dbdata.username,
-  password: dbdata.password,
+  password: "",
   database: dbdata.db,
 });
 
