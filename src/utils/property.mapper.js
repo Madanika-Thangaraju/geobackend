@@ -9,7 +9,7 @@ export function mapProperty(row) {
       ? `₹${Number(priceValue).toLocaleString("en-IN")}`
       : "Price on request",
 
-    type: `${row.bhk} BHK`,
+    type: row.bhk ? `${row.bhk} BHK` : row.property_type,
     title: row.title,
 
     description:
@@ -21,15 +21,19 @@ export function mapProperty(row) {
     bedrooms: row.bedrooms,
     bathrooms: row.bathrooms,
 
-    dist: "1.5 km",
+    dist: row.distance ? `${row.distance.toFixed(1)} km` : "Nearby",
     address: row.address,
+    location: {
+      lat: row.latitude,
+      lng: row.longitude
+    },
 
     match: "90% AI Match",
 
-    status: row.is_available ? "Available" : "Sold Out",
+    status: row.is_available === 0 ? "Sold Out" : "Available",
 
     image: {
-      uri: "https://images.unsplash.com/photo-1600596542815-e32c11e3b38c"
+      uri: row.main_image || "https://images.unsplash.com/photo-1600596542815-e32c11e3b38c"
     },
 
     owner: {
@@ -43,9 +47,9 @@ export function mapProperty(row) {
     },
 
     highlights: [
-      { icon: "bed-outline", label: `${row.bedrooms} Bedrooms` },
-      { icon: "water-outline", label: `${row.bathrooms} Bathrooms` },
-      { icon: "resize-outline", label: `${row.sqft} sqft` }
+      { icon: "bed-outline", label: `${row.bedrooms || 0} Bedrooms` },
+      { icon: "water-outline", label: `${row.bathrooms || 0} Bathrooms` },
+      { icon: "resize-outline", label: `${row.sqft || 0} sqft` }
     ]
   };
 }

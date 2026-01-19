@@ -7,8 +7,8 @@ User.create = async (data) => {
   const hashedPassword = await bcrypt.hash(data.password, 10);
 
   const sql = `
-    INSERT INTO users (name, email, phone, password)
-    VALUES (?, ?, ?, ?)
+    INSERT INTO users (name, email, phone, password , latitude, longitude)
+    VALUES (?, ?, ?, ?, ?, ?)
   `;
 
   const [result] = await db.query(sql, [
@@ -16,13 +16,15 @@ User.create = async (data) => {
     data.email,
     data.phone,
     hashedPassword,
+    data.latitude,
+    data.longitude
   ]);
   return result.insertId;
 };
 
 User.getAll = async () => {
   const sql = `
-      SELECT id, name, email, phone, created_at
+      SELECT id, name, email, phone, latitude, longitude, created_at
       FROM users
       ORDER BY id DESC
     `;

@@ -15,6 +15,8 @@ export const getProfile = async (req, res) => {
         email,
         phone,
         location,
+        latitude,
+        longitude,
         created_at
       FROM users
       WHERE id = ?`,
@@ -26,6 +28,29 @@ export const getProfile = async (req, res) => {
     }
 
     res.json(rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const updateProfile = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    const { name, phone, location, latitude, longitude } = req.body;
+
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    await db.query(
+      `UPDATE users 
+       SET name = ?, phone = ?, location = ?, latitude = ?, longitude = ? 
+       WHERE id = ?`,
+      [name, phone, location, latitude, longitude, userId]
+    );
+
+    res.json({ success: true, message: "Profile updated successfully" });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
@@ -48,4 +73,3 @@ export const getOwnerListings = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-

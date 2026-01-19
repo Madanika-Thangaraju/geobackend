@@ -10,10 +10,13 @@ Property.createProperty = async (data) => {
       INSERT INTO properties (
         owner_id,
         title,
+        description,
         listing_type,
         property_type,
         address,
         location,
+        latitude,
+        longitude,
         bhk,
         bedrooms,
         bathrooms,
@@ -24,16 +27,19 @@ Property.createProperty = async (data) => {
         deposit,
         created_at
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
     `;
 
   const values = [
     data.owner_id,
     data.title,
+    data.description,
     data.listing_type,
     data.property_type,
     data.address,
     data.location,
+    data.latitude,
+    data.longitude,
     data.bhk,
     data.bedrooms,
     data.bathrooms,

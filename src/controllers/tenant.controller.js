@@ -4,7 +4,14 @@ import { mapProperty } from "../utils/property.mapper.js";
 
 export async function getproperties(req, res) {
   try {
-    const rows = await Tenant.getAll();
+    const { lat, lng, radius } = req.query;
+    
+    // Parse values to numbers if they exist
+    const latitude = lat ? parseFloat(lat) : null;
+    const longitude = lng ? parseFloat(lng) : null;
+    const rad = radius ? parseFloat(radius) : null;
+
+    const rows = await Tenant.getAll(latitude, longitude, rad);
 
     const properties = rows.map(mapProperty);
 
@@ -15,6 +22,7 @@ export async function getproperties(req, res) {
     });
 
   } catch (err) {
+    console.error("GET PROPERTIES ERROR:", err);
     return res.status(500).json({
       success: false,
       message: err.message

@@ -4,10 +4,10 @@ import bcrypt from "bcryptjs";
 import { JWT_SECRET, JWT_EXPIRES_IN } from "../config/jwt.js";
 
 export async function registerUser(req, res) {
-    console.log("👉 registerTenant controller hit");
-    console.log("👉 req.body:", req.body);
+  console.log("👉 registerTenant controller hit");
+  console.log("👉 req.body:", req.body);
   try {
-    const { name, email, phone, password } = req.body;
+    const { name, email, phone, password, latitude, longitude } = req.body;
 
     if (!name || !phone || !password) {
       return res.status(400).json({ message: "Required fields missing" });
@@ -17,7 +17,9 @@ export async function registerUser(req, res) {
       name,
       email,
       phone,
-      password
+      password,
+      latitude,
+      longitude
     });
 
     res.status(201).json({
@@ -53,7 +55,7 @@ export async function loginUser(req, res) {
   try {
     const { identifier, password } = req.body;
 
-    console.log('response' , req.body);
+    console.log('response', req.body);
 
     if (!identifier || !password) {
       return res.status(400).json({
@@ -62,7 +64,7 @@ export async function loginUser(req, res) {
     }
 
     const cleanIdentifier = identifier.trim().toLowerCase();
-    console.log('cleanIdentifier' , cleanIdentifier)
+    console.log('cleanIdentifier', cleanIdentifier)
     const user = await User.findByPhoneOrEmail(cleanIdentifier);
 
     if (!user) {
