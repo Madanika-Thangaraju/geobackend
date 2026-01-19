@@ -2,15 +2,10 @@ import db from "../config/db.js";
 
 const Tenant = {};
 
-Tenant.getAll = () => {
-  return new Promise((resolve, reject) => {
-    const sql = "SELECT * FROM properties";
-
-    db.query(sql, (err, results) => {
-      if (err) return reject(err);
-      resolve(results);
-    });
-  });
+Tenant.getAll = async () => {
+  const sql = "SELECT * FROM properties";
+  const [rows] = await db.query(sql);
+  return rows;
 };
 
 export default Tenant;

@@ -3,66 +3,44 @@ import bcrypt from "bcryptjs";
 
 const User = {};
 
-User.create = (data) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      const hashedPassword = await bcrypt.hash(data.password, 10);
+User.create = async (data) => {
+  const hashedPassword = await bcrypt.hash(data.password, 10);
 
-      const sql = `
-        INSERT INTO users (name, email, phone, password)
-        VALUES (?, ?, ?, ?)
-      `;
+  const sql = `
+    INSERT INTO users (name, email, phone, password)
+    VALUES (?, ?, ?, ?)
+  `;
 
-      db.query(
-        sql,
-        [data.name, data.email, data.phone, hashedPassword],
-        (err, result) => {
-          if (err) return reject(err);
-          resolve(result.insertId);
-        }
-      );
-    } catch (err) {
-      reject(err);
-    }
-  });
+  const [result] = await db.query(sql, [
+    data.name,
+    data.email,
+    data.phone,
+    hashedPassword,
+  ]);
+  return result.insertId;
 };
 
-User.getAll = () => {
-  return new Promise((resolve, reject) => {
-    const sql = `
+User.getAll = async () => {
+  const sql = `
       SELECT id, name, email, phone, created_at
       FROM users
       ORDER BY id DESC
     `;
 
-    db.query(sql, (err, results) => {
-      if (err) return reject(err);
-      resolve(results);
-    });
-  });
+  const [rows] = await db.query(sql);
+  return rows;
 };
 
-User.findByPhoneOrEmail = (identifier) => {
-  return new Promise((resolve, reject) => {
-    const sql = `
+User.findByPhoneOrEmail = async (identifier) => {
+  const sql = `
       SELECT *
       FROM users
       WHERE phone = ? OR email = ?
       LIMIT 1
     `;
 
-    db.query(sql, [identifier, identifier], (err, results) => {
-      if (err) {
-        console.error("DB ERROR:", err);
-        return reject(err);
-      }
-
-      resolve(results.length ? results[0] : null);
-    });
-  });
+  const [rows] = await db.query(sql, [identifier, identifier]);
+  return rows.length ? rows[0] : null;
 };
-
-
-
 
 export default User;
