@@ -20,9 +20,9 @@ app.use(express.json());
 
 app.use("/users", userRoutes);
 
-app.use("/properties" , propertyRoutes);
+app.use("/properties", propertyRoutes);
 
-app.use("/tenants" , tenantProperties);
+app.use("/tenants", tenantProperties);
 
 app.get("/", (req, res) => {
   res.send("API is running");

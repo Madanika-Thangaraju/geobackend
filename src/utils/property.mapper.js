@@ -14,7 +14,7 @@ export function mapProperty(row) {
 
     description:
       row.description ||
-      "Beautiful property with modern amenities in a prime location.",
+      "Beautiful property with modern amenities in a prime location Beautiful property with modern amenities in a prime location Beautiful property with modern amenities in a prime location  Beautiful property with modern amenities in a prime location. ",
 
     size: row.sqft ? `${row.sqft} sqft` : "N/A",
 

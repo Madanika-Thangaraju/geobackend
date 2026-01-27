@@ -4,7 +4,7 @@ import { authMiddleware } from "../middlewares/auth.middleware.js";
 import {
   getProfile,
   getOwnerListings,
-  // updateProfile,
+  updateProfile,
   // updatePush
 } from "../controllers/owner.controller.js";
 
