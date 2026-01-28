@@ -107,4 +107,10 @@ Property.getByOwnerId = async (ownerId) => {
   return properties;
 };
 
+Property.getOwnerByPropertyId = async (propertyId) => {
+  const sql = "SELECT owner_id FROM properties WHERE id = ?";
+  const [rows] = await db.query(sql, [propertyId]);
+  return rows.length > 0 ? rows[0].owner_id : null;
+};
+
 export default Property;

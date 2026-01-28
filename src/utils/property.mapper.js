@@ -32,15 +32,19 @@ export function mapProperty(row) {
 
     status: row.is_available === 0 ? "Sold Out" : "Available",
 
+    images: (row.all_images || "").split("|||").filter(Boolean).map(url => ({ uri: url })),
     image: {
-      uri: row.main_image || "https://images.unsplash.com/photo-1600596542815-e32c11e3b38c"
+      uri: (row.all_images || "").split("|||")[0] || row.image_url || row.main_image || "https://images.unsplash.com/photo-1600596542815-e32c11e3b38c"
     },
 
     owner: {
-      name: "Property Owner",
+      id: row.owner_id,
+      name: row.owner_name || "Property Owner",
       image: {
-        uri: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e"
+        uri: row.owner_image || "https://images.unsplash.com/photo-1500648767791-00dcc994a43e"
       },
+      phone: row.owner_phone || "",
+      email: row.owner_email || "",
       rating: 4.6,
       reviews: 10,
       responseTime: "30 minutes"

@@ -7,6 +7,8 @@ import propertyRoutes from "./routes/property.routes.js";
 import tenantProperties from "./routes/tenant.routes.js";
 
 import ownerRoutes from "./routes/owner.routes.js"
+import chatRoutes from "./routes/chat.routes.js";
+import notificationRoutes from "./routes/notification.routes.js";
 
 const app = express();
 
@@ -33,5 +35,8 @@ app.get("/testing", (req, res) => {
 });
 
 app.use("/owners", ownerRoutes);
+app.use("/notifications", notificationRoutes);
+console.log("🚀 Registering Chat Routes...");
+app.use("/chat", chatRoutes);
 
 export default app;

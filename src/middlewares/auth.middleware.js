@@ -12,9 +12,11 @@ export const authMiddleware = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
+    console.log("✅ AUTH SUCCESS: User ID", decoded.id);
     req.user = decoded;
     next();
   } catch (error) {
+    console.error("❌ AUTH FAILED: Invalid token", error.message);
     return res.status(401).json({ message: "Invalid token" });
   }
 };
