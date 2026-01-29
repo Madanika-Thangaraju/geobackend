@@ -11,15 +11,19 @@ export const getProfile = async (req, res) => {
 
     const [rows] = await db.query(
       `SELECT 
-        name,
-        email,
-        phone,
-        location,
-        latitude,
-        longitude,
-        created_at
-      FROM users
-      WHERE id = ?`,
+        u.name,
+        u.email,
+        u.phone,
+        u.location,
+        u.latitude,
+        u.longitude,
+        u.created_at,
+        (SELECT COUNT(*) FROM properties WHERE owner_id = u.id) as listings,
+        (SELECT COUNT(*) FROM recently_viewed_properties rvp 
+         JOIN properties p ON rvp.property_id = p.id 
+         WHERE p.owner_id = u.id) as views
+      FROM users u
+      WHERE u.id = ?`,
       [userId]
     );
 

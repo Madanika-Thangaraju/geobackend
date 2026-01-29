@@ -32,6 +32,12 @@ export function mapProperty(row) {
 
     status: row.is_available === 0 ? "Sold Out" : "Available",
 
+    furnishing: row.furnishing,
+    deposit: row.deposit ? `₹${Number(row.deposit).toLocaleString("en-IN")}` : "N/A",
+    listing_type: row.listing_type,
+    property_type: row.property_type,
+    bhk: row.bhk,
+
     images: (row.all_images || "").split("|||").filter(Boolean).map(url => ({ uri: url })),
     image: {
       uri: (row.all_images || "").split("|||")[0] || row.image_url || row.main_image || "https://images.unsplash.com/photo-1600596542815-e32c11e3b38c"

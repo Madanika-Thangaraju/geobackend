@@ -33,6 +33,10 @@ Tenant.getAll = async (lat, lng, radius, filters = {}) => {
     if (radius) {
       havingClauses.push("distance < ?");
       params.push(radius);
+    } else {
+      // Use a default reasonable radius if lat/lng are provided but radius is not
+      havingClauses.push("distance < 50");
+      params.push(50);
     }
   }
 
@@ -83,7 +87,16 @@ Tenant.getAll = async (lat, lng, radius, filters = {}) => {
     sql += " ORDER BY p.created_at DESC";
   }
 
-  const [rows] = await db.query(sql, params);
+  // Fallback: If radius is small and zero results, try a default 10km radius
+  let [rows] = await db.query(sql, params);
+
+  if (rows.length === 0 && lat && lng && radius && radius < 10) {
+    // Broaden search to 10km as fallback
+    const broadenedParams = [...params];
+    broadenedParams[broadenedParams.length - 1] = 10; // Replace last param (radius)
+    [rows] = await db.query(sql, broadenedParams);
+  }
+
   return rows;
 };
 
