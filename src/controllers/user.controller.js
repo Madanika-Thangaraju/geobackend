@@ -22,10 +22,22 @@ export async function registerUser(req, res) {
       longitude
     });
 
+    const token = jwt.sign(
+      { id: userId },
+      JWT_SECRET,
+      { expiresIn: JWT_EXPIRES_IN }
+    );
+
     res.status(201).json({
       success: true,
       message: "User registered successfully",
-      user_id: userId
+      token,
+      user: {
+        id: userId,
+        name,
+        email,
+        phone,
+      }
     });
   } catch (err) {
     res.status(500).json({ message: err.message });

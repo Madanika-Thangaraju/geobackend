@@ -19,7 +19,8 @@ app.use(cors({
   allowedHeaders: ["Content-Type", "Authorization"],
 }));
 
-app.use(express.json());
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ limit: "10mb", extended: true }));
 
 app.use("/users", userRoutes);
 
@@ -40,5 +41,14 @@ app.use("/notifications", notificationRoutes);
 console.log("🚀 Registering Chat Routes...");
 app.use("/chat", chatRoutes);
 app.use("/interactions", interactionRoutes);
+
+// Global Error Handler
+app.use((err, req, res, next) => {
+  console.error("❌ GLOBAL ERROR:", err.message);
+  res.status(err.status || 500).json({
+    success: false,
+    message: err.message || "Internal Server Error",
+  });
+});
 
 export default app;

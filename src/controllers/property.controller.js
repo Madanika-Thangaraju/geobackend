@@ -18,7 +18,11 @@ export const addProperty = async (req, res) => {
       deposit,
       furnishing,
       price,
-      images
+      images,
+      floorNo,
+      parking,
+      mainRoadFacing,
+      washrooms
     } = req.body;
 
     const owner_id = req.user.id;
@@ -31,8 +35,8 @@ export const addProperty = async (req, res) => {
       owner_id,
       title,
       description,
-      listing_type: listingTypes[0],
-      property_type: propertyTypes[0],
+      listing_type: Array.isArray(listingTypes) ? listingTypes[0] : listingTypes,
+      property_type: Array.isArray(propertyTypes) ? propertyTypes[0] : propertyTypes,
       address,
       location: typeof location === 'string' ? location : (address ? address.split(',')[0] : ""),
       latitude: location?.lat || null,
@@ -44,7 +48,11 @@ export const addProperty = async (req, res) => {
       furnishing,
       price,
       rent_price: rentPrice,
-      deposit
+      deposit,
+      floor_no: floorNo,
+      parking_capacity: parking,
+      is_main_road_facing: mainRoadFacing,
+      washrooms
     });
 
     if (images && images.length > 0) {

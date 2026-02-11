@@ -1,4 +1,5 @@
 import Interaction from "../models/interaction.model.js";
+import Notification from "../models/notification.model.js";
 
 export const createTourRequest = async (req, res) => {
     try {
@@ -42,12 +43,23 @@ export const updateTourStatus = async (req, res) => {
     try {
         const { id } = req.params;
         const { status } = req.body;
+        const ownerId = req.user.id;
 
         if (!["accepted", "rejected"].includes(status)) {
             return res.status(400).json({ message: "Invalid status" });
         }
 
+        const tourRequest = await Interaction.getTourRequestById(id);
+        if (!tourRequest) {
+            return res.status(404).json({ message: "Tour request not found" });
+        }
+
         await Interaction.updateTourStatus(id, status);
+
+        // Send Notification to Tenant
+        const message = `Owner has ${status} your tour request for property ID: ${tourRequest.property_id}`;
+        await Notification.create(tourRequest.tenant_id, ownerId, tourRequest.property_id, 'tour_' + status, message);
+
         res.json({ success: true, message: `Tour request ${status}` });
     } catch (error) {
         console.error("UPDATE TOUR STATUS ERROR:", error);
@@ -89,12 +101,23 @@ export const updateCallStatus = async (req, res) => {
     try {
         const { id } = req.params;
         const { status } = req.body;
+        const ownerId = req.user.id;
 
         if (!["accepted", "rejected"].includes(status)) {
             return res.status(400).json({ message: "Invalid status" });
         }
 
+        const callRequest = await Interaction.getCallRequestById(id);
+        if (!callRequest) {
+            return res.status(404).json({ message: "Call request not found" });
+        }
+
         await Interaction.updateCallStatus(id, status);
+
+        // Send Notification to Tenant
+        const message = `Owner has ${status} your call request.`;
+        await Notification.create(callRequest.tenant_id, ownerId, null, 'call_' + status, message);
+
         res.json({ success: true, message: `Call request ${status}` });
     } catch (error) {
         console.error("UPDATE CALL STATUS ERROR:", error);

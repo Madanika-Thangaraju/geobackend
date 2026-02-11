@@ -6,9 +6,15 @@ import { mapProperty } from "../utils/property.mapper.js";
 
 export async function getproperties(req, res) {
   try {
-    const { lat, lng, radius, minPrice, maxPrice, propertyType, bedrooms, listingType } = req.query;
+    const {
+      lat, lng, radius, minPrice, maxPrice, propertyType, bedrooms, listingType,
+      category, furnishing, floorNo, parking, mainRoadFacing, washrooms
+    } = req.query;
 
-    const filters = { minPrice, maxPrice, propertyType, bedrooms, listingType };
+    const filters = {
+      minPrice, maxPrice, propertyType, bedrooms, listingType,
+      category, furnishing, floorNo, parking, mainRoadFacing, washrooms
+    };
 
     // Parse values to numbers if they exist
     const latitude = lat ? parseFloat(lat) : null;

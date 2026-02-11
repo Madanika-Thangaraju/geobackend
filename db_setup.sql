@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS notifications (
   user_id INT NOT NULL,
   sender_id INT,
   property_id INT,
-  type ENUM('like', 'save', 'view', 'message') NOT NULL,
+  type ENUM('like', 'save', 'view', 'message', 'tour_accepted', 'tour_rejected', 'call_accepted', 'call_rejected') NOT NULL,
   message TEXT NOT NULL,
   is_read BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

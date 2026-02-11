@@ -39,6 +39,12 @@ Interaction.updateTourStatus = async (id, status) => {
     await db.query(sql, [status, id]);
 };
 
+Interaction.getTourRequestById = async (id) => {
+    const sql = "SELECT * FROM tour_requests WHERE id = ?";
+    const [rows] = await db.query(sql, [id]);
+    return rows[0];
+};
+
 // --- Call Requests ---
 
 Interaction.createCallRequest = async (data) => {
@@ -63,6 +69,12 @@ Interaction.getCallRequestsForUser = async (userId, role) => {
 Interaction.updateCallStatus = async (id, status) => {
     const sql = "UPDATE call_requests SET status = ? WHERE id = ?";
     await db.query(sql, [status, id]);
+};
+
+Interaction.getCallRequestById = async (id) => {
+    const sql = "SELECT * FROM call_requests WHERE id = ?";
+    const [rows] = await db.query(sql, [id]);
+    return rows[0];
 };
 
 export default Interaction;

@@ -28,7 +28,7 @@ export function mapProperty(row) {
       lng: row.longitude
     },
 
-    match: "90% AI Match",
+    match: row.match_score ? `${row.match_score}% Match` : "90% Fit",
 
     status: row.is_available === 0 ? "Sold Out" : "Available",
 

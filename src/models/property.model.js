@@ -25,9 +25,13 @@ Property.createProperty = async (data) => {
         price,
         rent_price,
         deposit,
+        floor_no,
+        parking_capacity,
+        is_main_road_facing,
+        washrooms,
         created_at
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
     `;
 
   const values = [
@@ -47,7 +51,11 @@ Property.createProperty = async (data) => {
     data.furnishing,
     data.price,
     data.rent_price,
-    data.deposit
+    data.deposit,
+    data.floor_no,
+    data.parking_capacity,
+    data.is_main_road_facing,
+    data.washrooms
   ];
 
   const [result] = await db.query(sql, values);
@@ -111,6 +119,53 @@ Property.getOwnerByPropertyId = async (propertyId) => {
   const sql = "SELECT owner_id FROM properties WHERE id = ?";
   const [rows] = await db.query(sql, [propertyId]);
   return rows.length > 0 ? rows[0].owner_id : null;
+};
+
+Property.getStagnantByOwnerId = async (ownerId) => {
+  const sql = `
+    SELECT p.* FROM properties p 
+    WHERE p.owner_id = ? 
+    AND p.status = 'active' 
+    AND p.id NOT IN (
+      SELECT property_id FROM recently_viewed_properties 
+      WHERE last_viewed_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+    )
+  `;
+  const [rows] = await db.query(sql, [ownerId]);
+
+  if (rows.length > 0) {
+    const propertyIds = rows.map(p => p.id);
+    const sqlImages = `SELECT * FROM property_images WHERE property_id IN (?)`;
+    const [images] = await db.query(sqlImages, [propertyIds]);
+
+    rows.forEach(property => {
+      property.images = images.filter(img => img.property_id === property.id);
+    });
+  }
+
+  return rows;
+};
+
+Property.getVisitedByOwnerId = async (ownerId) => {
+  const sql = `
+    SELECT DISTINCT p.* FROM properties p
+    JOIN recently_viewed_properties rvp ON p.id = rvp.property_id
+    WHERE p.owner_id = ?
+    ORDER BY rvp.last_viewed_at DESC
+  `;
+  const [rows] = await db.query(sql, [ownerId]);
+
+  if (rows.length > 0) {
+    const propertyIds = rows.map(p => p.id);
+    const sqlImages = `SELECT * FROM property_images WHERE property_id IN (?)`;
+    const [images] = await db.query(sqlImages, [propertyIds]);
+
+    rows.forEach(property => {
+      property.images = images.filter(img => img.property_id === property.id);
+    });
+  }
+
+  return rows;
 };
 
 export default Property;

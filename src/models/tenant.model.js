@@ -3,6 +3,79 @@ import db from "../config/db.js";
 const Tenant = {};
 
 Tenant.getAll = async (lat, lng, radius, filters = {}) => {
+  let scoreParts = ["100"]; // Base score
+  let params = [];
+
+  // 1. Price Score Calculation
+  if (filters.minPrice || filters.maxPrice) {
+    const min = filters.minPrice ? parseFloat(filters.minPrice) : 0;
+    const max = filters.maxPrice ? parseFloat(filters.maxPrice) : 999999999;
+
+    // Calculate deviation score: -20 if outside range, -40 if majorly outside
+    scoreParts.push(`
+      CASE 
+        WHEN (IF(p.listing_type = 'Rent', p.rent_price, p.price) BETWEEN ? AND ?) THEN 0
+        WHEN (IF(p.listing_type = 'Rent', p.rent_price, p.price) BETWEEN ? * 0.8 AND ? * 1.2) THEN -15
+        ELSE -30
+      END
+    `);
+    params.push(min, max, min, max);
+  }
+
+  // 2. Property Type Score (Scoring instead of Filtering)
+  if (filters.propertyType && filters.propertyType !== 'All') {
+    const types = filters.propertyType.split(',').filter(t => t !== '');
+    if (types.length > 0) {
+      scoreParts.push(`CASE WHEN p.property_type IN (${types.map(() => '?').join(',')}) THEN 0 ELSE -25 END`);
+      params.push(...types);
+    }
+  }
+
+  // 3. Bedrooms Score
+  if (filters.bedrooms && filters.bedrooms !== 'Any') {
+    const bhk = parseInt(filters.bedrooms);
+    if (!isNaN(bhk)) {
+      scoreParts.push(`
+        CASE 
+          WHEN (p.bedrooms = ? OR p.bhk = ?) THEN 0
+          WHEN (ABS(p.bedrooms - ?) = 1 OR ABS(p.bhk - ?) = 1) THEN -15
+          ELSE -30
+        END
+      `);
+      params.push(bhk, bhk, bhk, bhk);
+    }
+  }
+
+  // 4. Furnishing Score (Scoring instead of Filtering)
+  if (filters.furnishing) {
+    const furnishingValue = filters.furnishing.toLowerCase().replace('fully ', '').replace('semi-', 'semi-');
+    scoreParts.push(`CASE WHEN p.furnishing = ? THEN 0 ELSE -10 END`);
+    params.push(furnishingValue);
+  }
+
+  // 5. Floor No Score (Scoring instead of Filtering)
+  if (filters.floorNo) {
+    scoreParts.push(`CASE WHEN p.floor_no = ? THEN 0 ELSE -5 END`);
+    params.push(filters.floorNo);
+  }
+
+  // 6. Parking Score (Scoring instead of Filtering)
+  if (filters.parking) {
+    scoreParts.push(`CASE WHEN p.parking_capacity >= ? THEN 0 ELSE -10 END`);
+    params.push(filters.parking);
+  }
+
+  // 7. Main Road Facing Score (Scoring instead of Filtering)
+  if (filters.mainRoadFacing === 'true' || filters.mainRoadFacing === true) {
+    scoreParts.push(`CASE WHEN p.is_main_road_facing = 1 THEN 0 ELSE -10 END`);
+  }
+
+  // 8. Washrooms Score (Scoring instead of Filtering)
+  if (filters.washrooms) {
+    scoreParts.push(`CASE WHEN p.washrooms >= ? THEN 0 ELSE -10 END`);
+    params.push(filters.washrooms);
+  }
+
   let sql = `
     SELECT 
       p.*,
@@ -11,10 +84,10 @@ Tenant.getAll = async (lat, lng, radius, filters = {}) => {
       u.email AS owner_email,
       u.phone AS owner_phone,
       u.image AS owner_image,
-      ui.all_images
+      ui.all_images,
+      (${scoreParts.join(" + ")}) AS match_score
   `;
 
-  let params = [];
   let whereClauses = [];
   let havingClauses = [];
 
@@ -34,7 +107,6 @@ Tenant.getAll = async (lat, lng, radius, filters = {}) => {
       havingClauses.push("distance < ?");
       params.push(radius);
     } else {
-      // Use a default reasonable radius if lat/lng are provided but radius is not
       havingClauses.push("distance < 50");
       params.push(50);
     }
@@ -48,30 +120,21 @@ Tenant.getAll = async (lat, lng, radius, filters = {}) => {
     ) ui ON ui.property_id = p.id
   `;
 
-  // Apply filters
-  if (filters.minPrice) {
-    whereClauses.push("(IF(p.listing_type = 'Rent', p.rent_price, CAST(p.price AS DECIMAL)) >= ?)");
-    params.push(filters.minPrice);
-  }
-  if (filters.maxPrice) {
-    whereClauses.push("(IF(p.listing_type = 'Rent', p.rent_price, CAST(p.price AS DECIMAL)) <= ?)");
-    params.push(filters.maxPrice);
-  }
-  if (filters.propertyType && filters.propertyType !== 'All') {
-    whereClauses.push("p.property_type = ?");
-    params.push(filters.propertyType);
-  }
-  if (filters.bedrooms && filters.bedrooms !== 'Any') {
-    const bhk = parseInt(filters.bedrooms);
-    if (!isNaN(bhk)) {
-      whereClauses.push("(p.bedrooms = ? OR p.bhk = ?)");
-      params.push(bhk, bhk);
-    }
-  }
+  // Hard filters stay in WHERE (Listing Type & Category)
   if (filters.listingType && filters.listingType !== 'Both') {
     whereClauses.push("p.listing_type = ?");
     params.push(filters.listingType);
   }
+
+  if (filters.category) {
+    if (filters.category === 'Residential') {
+      whereClauses.push("p.property_type IN ('house', 'apartment', 'villa', 'plot')");
+    } else if (filters.category === 'Commercial') {
+      whereClauses.push("p.property_type IN ('office', 'cafe', 'shop')");
+    }
+  }
+
+  // NOTE: Other filters removed from WHERE to allow soft matching/scoring
 
   if (whereClauses.length > 0) {
     sql += " WHERE " + whereClauses.join(" AND ");
@@ -81,21 +144,14 @@ Tenant.getAll = async (lat, lng, radius, filters = {}) => {
     sql += " HAVING " + havingClauses.join(" AND ");
   }
 
+  // Primary sort by match_score, secondary by distance or date
   if (lat && lng) {
-    sql += " ORDER BY distance ASC";
+    sql += " ORDER BY match_score DESC, distance ASC";
   } else {
-    sql += " ORDER BY p.created_at DESC";
+    sql += " ORDER BY match_score DESC, p.created_at DESC";
   }
 
-  // Fallback: If radius is small and zero results, try a default 10km radius
   let [rows] = await db.query(sql, params);
-
-  if (rows.length === 0 && lat && lng && radius && radius < 10) {
-    // Broaden search to 10km as fallback
-    const broadenedParams = [...params];
-    broadenedParams[broadenedParams.length - 1] = 10; // Replace last param (radius)
-    [rows] = await db.query(sql, broadenedParams);
-  }
 
   return rows;
 };
