@@ -18,21 +18,19 @@ export const getProfile = async (req, res) => {
         u.latitude,
         u.longitude,
         u.image,
-        u.push_enabled,
         u.created_at,
         (SELECT COUNT(*) FROM properties WHERE owner_id = u.id) as total_listings,
-        (SELECT COUNT(*) FROM properties WHERE owner_id = u.id AND status = 'active') as listings,
+        (SELECT COUNT(*) FROM properties WHERE owner_id = u.id) as listings,
         (SELECT COUNT(*) FROM recently_viewed_properties rvp 
          JOIN properties p ON rvp.property_id = p.id 
          WHERE p.owner_id = u.id) as views,
         (SELECT COUNT(*) FROM saved_properties sp 
          JOIN properties p ON sp.property_id = p.id 
          WHERE p.owner_id = u.id) as saved_count,
-        (SELECT COUNT(*) FROM properties WHERE owner_id = u.id AND status = 'sold') as sold_count,
-        (SELECT COUNT(*) FROM properties WHERE owner_id = u.id AND status = 'pending') as pending_count,
+        (SELECT COUNT(*) FROM properties WHERE owner_id = u.id ) as sold_count,
+        (SELECT COUNT(*) FROM properties WHERE owner_id = u.id ) as pending_count,
         (SELECT COUNT(*) FROM properties p 
          WHERE p.owner_id = u.id 
-         AND p.status = 'active'
          AND p.id NOT IN (
            SELECT property_id FROM recently_viewed_properties 
            WHERE last_viewed_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
